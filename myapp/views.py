@@ -9,6 +9,7 @@ from instaClone.settings import BASE_DIR
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
 
+#creating view for signup
 def signup_view(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -28,7 +29,7 @@ def signup_view(request):
 
     return render(request, 'index.html', {'form': form})
 
-
+#creting view for login
 def login_view(request):
     response_data = {}
     if request.method == "POST":
@@ -43,7 +44,7 @@ def login_view(request):
                     token = SessionToken(user=user)
                     token.create_token()
                     token.save()
-                    response = redirect('feeds/')
+                    response = redirect('feed/')
                     response.set_cookie(key='session_token', value=token.session_token)
                     return response
                 else:
@@ -55,7 +56,7 @@ def login_view(request):
     response_data['form'] = form
     return render(request, 'login.html', response_data)
 
-
+#creating view for feed
 def feed_view(request):
     user = check_validation(request)
     if user:
@@ -67,7 +68,7 @@ def feed_view(request):
             if existing_like:
                 post.has_liked = True
 
-        return render(request, 'feeds.html', {'posts': posts})
+        return render(request, 'feed.html', {'posts': posts})
     else:
 
         return redirect('/login/')
@@ -82,7 +83,7 @@ def check_validation(request):
     else:
         return None
 
-
+#creating view for post
 def post_view(request):
     user = check_validation(request)
 
@@ -101,7 +102,16 @@ def post_view(request):
                 post.image_url = client.upload_from_path(path,anon=True)['link']
                 post.save()
 
-                return redirect('/feeds/')
+                clarifai_data = []
+                app = ClarifaiApp(api_key='fcfdca12d67a4af7b657c4117ea90128')
+                model = app.models.get("general-v1.3")
+                result = model.predict_by_url(url=post.image_url)
+                for x in range(0, len(result['outputs'][0]['data']['concepts'])):
+                    model = result['outputs'][0]['data']['concepts'][x]['name']
+                    clarifai_data.append(model)
+                for z in range(0, len(clarifai_data)):
+                    print clarifai_data[z]
+                return redirect('/feed/')
 
         else:
             form = PostForm()
@@ -109,7 +119,7 @@ def post_view(request):
     else:
         return redirect('/login/')
 
-
+#creating view for like
 def like_view(request):
     user = check_validation(request)
     if user and request.method == 'POST':
@@ -121,10 +131,12 @@ def like_view(request):
                 LikeModel.objects.create(post_id=post_id, user=user)
             else:
                 existing_like.delete()
-            return redirect('/feeds/')
+            return redirect('/feed/')
     else:
         return redirect('/login/')
 
+
+# creating view for comment
 def comment_view(request):
     user = check_validation(request)
     if user and request.method == 'POST':
@@ -134,8 +146,8 @@ def comment_view(request):
             comment_text = form.cleaned_data.get('comment_text')
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
             comment.save()
-            return redirect('/feeds/')
+            return redirect('/feed/')
         else:
-            return redirect('/feeds/')
+            return redirect('/feed/')
     else:
         return redirect('/login')

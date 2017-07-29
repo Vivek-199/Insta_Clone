@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 from django.db import models
 import uuid
+#creating models
 
+#creating user model
 class UserModel(models.Model):
 	email = models.EmailField()
 	name = models.CharField(max_length=120)
@@ -10,7 +12,7 @@ class UserModel(models.Model):
 	created_on = models.DateTimeField(auto_now_add=True)
 	updated_on = models.DateTimeField(auto_now=True)
 
-
+#creating class session token
 class SessionToken(models.Model):
 	user = models.ForeignKey(UserModel)
 	session_token = models.CharField(max_length=255)
@@ -21,7 +23,7 @@ class SessionToken(models.Model):
 	def create_token(self):
 		self.session_token = uuid.uuid4()
 
-
+#creating class post model
 class PostModel(models.Model):
   user = models.ForeignKey(UserModel)
   image = models.FileField(upload_to='user_images')
@@ -39,14 +41,14 @@ class PostModel(models.Model):
   def comments(self):
 	  return CommentModel.objects.filter(post=self).order_by('-created_on')
 
-
+#creating class like model
 class LikeModel(models.Model):
 	user = models.ForeignKey(UserModel)
 	post = models.ForeignKey(PostModel)
 	created_on = models.DateTimeField(auto_now_add=True)
 	updated_on = models.DateTimeField(auto_now=True)
 
-
+#creating class comment model
 class CommentModel(models.Model):
 	user = models.ForeignKey(UserModel)
 	post = models.ForeignKey(PostModel)
