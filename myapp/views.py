@@ -8,6 +8,9 @@ from django.utils import timezone
 from instaClone.settings import BASE_DIR
 from imgurpython import ImgurClient
 from clarifai.rest import ClarifaiApp
+from paralleldots import set_api_key, sentiment
+set_api_key('7IuD5ASUtkhIccIniP7MetgDIhvgdGpBXtj6NMihb9E')
+response = sentiment("GOOD")
 
 #creating view for signup
 def signup_view(request):
@@ -103,7 +106,7 @@ def post_view(request):
                 post.save()
 
                 clarifai_data = []
-                app = ClarifaiApp(api_key='fcfdca12d67a4af7b657c4117ea90128')
+                app = ClarifaiApp(api_key='d031a5db120a409dae6d1f9a3d9e870c')
                 model = app.models.get("general-v1.3")
                 result = model.predict_by_url(url=post.image_url)
                 for x in range(0, len(result['outputs'][0]['data']['concepts'])):
@@ -151,3 +154,4 @@ def comment_view(request):
             return redirect('/feed/')
     else:
         return redirect('/login')
+
